@@ -20,12 +20,99 @@ show_menu() {
     echo "5. Exit"
     echo "============================"
 }
+# =================================
+# STEP 2 : SYSTEM MONITOR
+# =================================
 
-system_monitor() {
-    echo "System Monitor - A developper dans l'etape 2"
+# 1. CPU Usage
+cpu_usage() {
+    read -r cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
+
+    total1=$((user + nice + system + idle + iowait + irq + softirq + steal))
+    idle1=$((idle + iowait))
+
+    sleep 1
+
+    read -r cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
+
+    total2=$((user + nice + system + idle + iowait + irq + softirq + steal))
+    idle2=$((idle + iowait))
+
+    total_diff=$((total2 - total1))
+    idle_diff=$((idle2 - idle1))
+    busy=$((total_diff - idle_diff))
+
+    awk -v busy="$busy" -v total="$total_diff" 'BEGIN {
+        if (total > 0)
+            printf "CPU Usage: %.2f%%\n", (busy / total) * 100
+        else
+            print "CPU Usage: 0%"
+    }'
 }
 
+# 2. RAM Usage
+ram_usage() {
+    read -r total < <(awk '/^MemTotal:/ {print $2}' /proc/meminfo)
+    read -r available < <(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
 
+    used=$((total - available))
+
+    awk -v used="$used" -v total="$total" 'BEGIN {
+        if (total > 0)
+            printf "RAM Usage: %.2f%%\n", (used / total) * 100
+        else
+            print "RAM Usage: 0%"
+    }'
+}
+
+# 3. Load Average
+load_average() {
+    read -r load1 load5 load15 processes last_pid < /proc/loadavg
+
+    echo "Load Average:"
+    echo "1 minute:   $load1"
+    echo "5 minutes:  $load5"
+    echo "15 minutes: $load15"
+    echo "Processes:  $processes"
+}
+
+# 4. Process Monitor
+process_monitor() {
+    echo "Top 5 Processes:"
+    ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -n 6
+}
+
+# 5. Main function (menu option 1)
+system_monitor() {
+    local stop=0
+    trap 'stop=1' INT
+
+    while [ "$stop" -eq 0 ]; do
+        clear
+
+        echo "===== SYSTEM MONITOR ====="
+        echo
+
+        cpu_usage
+        echo
+
+        ram_usage
+        echo
+
+        load_average
+        echo
+
+        process_monitor
+
+        echo
+        echo "Refreshing every 2 seconds..."
+        echo "Press Ctrl+C to return to menu."
+
+        sleep 2
+    done
+
+    trap - INT
+}
 # ==============================
 # STEP 3 : LOG ANALYSIS
 # ==============================
