@@ -226,9 +226,118 @@ log_analysis() {
     done
 }
 
+# =================================
+# STEP 4 : PERMISSIONS AUDIT
+# =================================
 
 permissions_audit() {
-    echo "Permissions Audit - A developper dans l'etape 4"
+
+    while true; do
+
+        echo ""
+        echo "======= PERMISSIONS AUDIT ======="
+        echo "1. Display /etc/passwd information"
+        echo "2. Check sensitive file permissions"
+        echo "3. Find SUID / SGID files"
+        echo "4. Display current umask"
+        echo "5. Back to Main Menu"
+        echo "================================="
+
+        read -r -p "Votre choix : " audit_choice
+
+        case "$audit_choice" in
+
+            1)
+                echo ""
+                echo "===== /etc/passwd INFORMATION ====="
+
+                if [[ -r /etc/passwd ]]; then
+                    echo "Username | UID | GID | Home | Shell"
+                    awk -F: '{
+                        printf "%-15s %-8s %-8s %-20s %s\n",
+                        $1, $3, $4, $6, $7
+                    }' /etc/passwd
+
+                    echo ""
+                    echo "Accounts with UID 0:"
+                    awk -F: '$3 == 0 {
+                        print $1
+                    }' /etc/passwd
+                else
+                    echo "Cannot read /etc/passwd"
+                fi
+                ;;
+
+            2)
+                echo ""
+                echo "===== SENSITIVE FILE PERMISSIONS ====="
+
+                for file in /etc/passwd /etc/shadow /etc/group /etc/gshadow; do
+
+                    if [[ -e "$file" ]]; then
+
+                        mode=$(stat -c "%a" "$file")
+
+                        echo ""
+                        stat -c "%A %a %U:%G %n" "$file"
+
+                        group_digit=${mode: -2:1}
+                        other_digit=${mode: -1}
+
+                        if (( (10#$group_digit & 2) != 0 || (10#$other_digit & 2) != 0 )); then
+                            echo "WARNING: File is writable by group or others!"
+                        else
+                            echo "OK: No group/others write permission."
+                        fi
+
+                    else
+                        echo "File not found: $file"
+                    fi
+
+                done
+                ;;
+
+            3)
+                echo ""
+                echo "===== SUID / SGID FILES ====="
+
+                echo "SUID files:"
+                find / -xdev -type f -perm -4000 -print 2>/dev/null
+
+                echo ""
+                echo "SGID files:"
+                find / -xdev -type f -perm -2000 -print 2>/dev/null
+                ;;
+
+            4)
+                echo ""
+                echo "===== CURRENT UMASK ====="
+
+                echo "Numeric umask:"
+                umask
+
+                echo ""
+                echo "Symbolic umask:"
+                umask -S
+
+                echo ""
+                echo "Default permissions:"
+                echo "Files:       666 & ~umask"
+                echo "Directories: 777 & ~umask"
+                ;;
+
+            5)
+                echo "Returning to main menu..."
+                break
+                ;;
+
+            *)
+                echo "Invalid choice. Try again."
+                ;;
+
+        esac
+
+    done
 }
 
 main() {
