@@ -56,14 +56,20 @@ show_menu() {
 
 # 1. CPU Usage
 cpu_usage() {
-    read -r cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
+    if ! read -r cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat; then
+    handle_error
+    return 1
+fi
 
     total1=$((user + nice + system + idle + iowait + irq + softirq + steal))
     idle1=$((idle + iowait))
 
     sleep 1
 
-    read -r cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat
+if ! read -r cpu user nice system idle iowait irq softirq steal guest guest_nice < /proc/stat; then
+    handle_error
+    return 1
+fi
 
     total2=$((user + nice + system + idle + iowait + irq + softirq + steal))
     idle2=$((idle + iowait))
