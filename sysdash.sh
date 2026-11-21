@@ -136,7 +136,7 @@ system_monitor() {
         sleep 2
     done
 
-    trap - INT
+    trap handle_interrupt INT TERM
 }
 # ==============================
 # STEP 3 : LOG ANALYSIS
