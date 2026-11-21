@@ -124,7 +124,7 @@ fi
 # 4. Process Monitor
 process_monitor() {
     echo "Top 5 Processes:"
-
+    set -o pipefail
     if ! ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -n 6; then
         handle_error
         return 1
