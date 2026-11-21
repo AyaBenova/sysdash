@@ -88,8 +88,14 @@ fi
 
 # 2. RAM Usage
 ram_usage() {
-    read -r total < <(awk '/^MemTotal:/ {print $2}' /proc/meminfo)
-    read -r available < <(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+    if ! read -r total < <(awk '/^MemTotal:/ {print $2}' /proc/meminfo); then
+    handle_error
+    return 1
+fi
+    if ! read -r available < <(awk '/^MemAvailable:/ {print $2}' /proc/meminfo); then
+    handle_error
+    return 1
+fi
 
     used=$((total - available))
 
