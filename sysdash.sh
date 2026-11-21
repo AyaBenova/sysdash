@@ -1,5 +1,30 @@
 #!/usr/bin/env bash
+# =================================
+# STEP 5 : ROBUSTNESS
+# =================================
 
+# 1. Error handling
+handle_error() {
+    echo "ERROR: An operation has failed."
+}
+
+# 2. Clean exit
+cleanup() {
+    echo ""
+    echo "Cleaning up..."
+    echo "Sysdash terminated successfully."
+}
+
+# 3. Signal handling
+handle_interrupt() {
+    echo ""
+    echo "Interrupt signal received."
+    exit 130
+}
+
+# Register traps
+trap cleanup EXIT
+trap handle_interrupt INT TERM
 # ==============================
 # Sysdash - Tableau de bord système
 # Etape 1 : Squelette
