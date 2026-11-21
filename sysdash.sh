@@ -7,12 +7,7 @@
 handle_error() {
     echo "ERROR: An operation has failed."
 }
-# Check command exit status
-check_status() {
-    if [[ $? -ne 0 ]]; then
-        handle_error
-    fi
-}
+
 # 2. Clean exit
 cleanup() {
     echo ""
