@@ -109,7 +109,10 @@ fi
 
 # 3. Load Average
 load_average() {
-    read -r load1 load5 load15 processes last_pid < /proc/loadavg
+    if ! read -r load1 load5 load15 processes last_pid < /proc/loadavg; then
+    handle_error
+    return 1
+fi
 
     echo "Load Average:"
     echo "1 minute:   $load1"
@@ -121,7 +124,11 @@ load_average() {
 # 4. Process Monitor
 process_monitor() {
     echo "Top 5 Processes:"
-    ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -n 6
+
+    if ! ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -n 6; then
+        handle_error
+        return 1
+    fi
 }
 
 # 5. Main function (menu option 1)
