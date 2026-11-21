@@ -325,7 +325,10 @@ permissions_audit() {
 
                     if [[ -e "$file" ]]; then
 
-                        mode=$(stat -c "%a" "$file")
+                  if ! mode=$(stat -c "%a" "$file"); then
+                      handle_error
+                      continue
+                    fi
 
                         echo ""
                         stat -c "%A %a %U:%G %n" "$file"
@@ -350,12 +353,16 @@ permissions_audit() {
                 echo ""
                 echo "===== SUID / SGID FILES ====="
 
-                echo "SUID files:"
-                find / -xdev -type f -perm -4000 -print 2>/dev/null
+               echo "SUID files:"
+if ! find / -xdev -type f -perm -4000 -print 2>/dev/null; then
+    handle_error
+fi
 
-                echo ""
-                echo "SGID files:"
-                find / -xdev -type f -perm -2000 -print 2>/dev/null
+echo ""
+echo "SGID files:"
+if ! find / -xdev -type f -perm -2000 -print 2>/dev/null; then
+    handle_error
+fi
                 ;;
 
             4)
